@@ -1,0 +1,134 @@
+C51 COMPILER V9.60.0.0   DS18B20                                                           05/05/2022 14:22:22 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE DS18B20
+OBJECT MODULE PLACED IN .\Objects\ds18b20.obj
+COMPILER INVOKED BY: D:\keil\C51\BIN\C51.EXE ..\Driver\ds18b20.c COMPACT OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Driver;..\In
+                    -clude;..\User) DEBUG OBJECTEXTEND PRINT(.\Listings\ds18b20.lst) TABS(2) OBJECT(.\Objects\ds18b20.obj)
+
+line level    source
+
+   1          #include "config.h"
+   2          
+   3          void DelayX10us(unsigned char t)
+   4          {
+   5   1        do {
+   6   2          _nop_();
+   7   2          _nop_();
+   8   2          _nop_();
+   9   2          _nop_();
+  10   2          _nop_();
+  11   2          _nop_();
+  12   2          _nop_();
+  13   2          _nop_();
+  14   2        }while(--t);
+  15   1      }
+  16          
+  17          bit Get18B20Ack()
+  18          {
+  19   1        bit ack;
+  20   1        
+  21   1        EA = 0;
+  22   1        IO_18B20 = 0;
+  23   1        DelayX10us(50);
+  24   1        IO_18B20 = 1;
+  25   1        DelayX10us(6);   
+  26   1        ack = IO_18B20;   
+  27   1        while(!IO_18B20); 
+  28   1        EA = 1;   
+  29   1          
+  30   1        return ack;
+  31   1      }
+  32          
+  33          void Write18B20(unsigned char dat)
+  34          {
+  35   1        unsigned char mask;
+  36   1          
+  37   1        EA = 0;   
+  38   1        for (mask=0x01; mask!=0; mask<<=1)  
+  39   1        {
+  40   2          IO_18B20 = 0;        
+  41   2          _nop_();
+  42   2          _nop_();
+  43   2          if ((mask&dat) == 0)  
+  44   2            IO_18B20 = 0;
+  45   2          else
+  46   2            IO_18B20 = 1;
+  47   2          DelayX10us(6);       
+  48   2          IO_18B20 = 1;       
+  49   2        }
+  50   1        EA = 1;  
+  51   1      }
+  52          
+  53          unsigned char Read18B20()
+  54          {
+C51 COMPILER V9.60.0.0   DS18B20                                                           05/05/2022 14:22:22 PAGE 2   
+
+  55   1        unsigned char dat;
+  56   1        unsigned char mask;
+  57   1          
+  58   1        EA = 0;  
+  59   1        for (mask=0x01; mask!=0; mask<<=1)  
+  60   1        {
+  61   2          IO_18B20 = 0;         
+  62   2          _nop_();
+  63   2          _nop_();
+  64   2          IO_18B20 = 1;        
+  65   2          _nop_();             
+  66   2          _nop_();
+  67   2          if (!IO_18B20)      
+  68   2            dat &= ~mask;
+  69   2          else
+  70   2            dat |= mask;
+  71   2          DelayX10us(6);       
+  72   2        }
+  73   1        EA = 1;   
+  74   1      
+  75   1        return dat;
+  76   1      }
+  77          
+  78          bit Start18B20()
+  79          {
+  80   1        bit ack;
+  81   1          
+  82   1        ack = Get18B20Ack();  
+  83   1        if (ack == 0)         
+  84   1        {
+  85   2          Write18B20(0xCC);  
+  86   2          Write18B20(0x44); 
+  87   2        }
+  88   1        return ~ack;   
+  89   1      }
+  90          
+  91          bit Get18B20Temp(int *temp)
+  92          {
+  93   1        bit ack;
+  94   1        unsigned char LSB, MSB; 
+  95   1          
+  96   1        ack = Get18B20Ack();    
+  97   1        if (ack == 0)          
+  98   1        {
+  99   2          Write18B20(0xCC);   
+ 100   2          Write18B20(0xBE);   
+ 101   2          LSB = Read18B20();  
+ 102   2          MSB = Read18B20();  
+ 103   2          *temp = ((int)MSB << 8) + LSB;  
+ 104   2        }
+ 105   1        return ~ack;  
+ 106   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    187    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       3
+C51 COMPILER V9.60.0.0   DS18B20                                                           05/05/2022 14:22:22 PAGE 3   
+
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

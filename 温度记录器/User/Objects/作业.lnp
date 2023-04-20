@@ -1,0 +1,11 @@
+".\Objects\main.obj",
+".\Objects\STARTUP.obj",
+".\Objects\led.obj",
+".\Objects\keyboard.obj",
+".\Objects\ds18b20.obj",
+".\Objects\ds1302.obj",
+".\Objects\lcd1602.obj",
+".\Objects\time.obj",
+".\Objects\temp.obj" 
+TO ".\Objects\作业" 
+PRINT(".\Listings\作业.m51") RAMSIZE(256) 

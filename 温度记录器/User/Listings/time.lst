@@ -1,0 +1,210 @@
+C51 COMPILER V9.60.0.0   TIME                                                              05/05/2022 14:22:23 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE TIME
+OBJECT MODULE PLACED IN .\Objects\time.obj
+COMPILER INVOKED BY: D:\keil\C51\BIN\C51.EXE ..\Driver\time.c COMPACT OPTIMIZE(8,SPEED) BROWSE INCDIR(..\Driver;..\Inclu
+                    -de;..\User) DEBUG OBJECTEXTEND PRINT(.\Listings\time.lst) TABS(2) OBJECT(.\Objects\time.obj)
+
+line level    source
+
+   1          #include "config.h"
+   2          #include "ds1302.h"
+   3          #include "keyboard.h"
+   4          #include "lcd1602.h"
+   5          
+   6          struct sTime bufTime;
+   7          unsigned char setIndex = 0;
+   8          unsigned char psec = 0xAA;
+   9          
+  10          void RefreshTimeShow();
+  11          
+  12          void ShowBcdByte(unsigned char x, unsigned char y, unsigned char bcd)
+  13          {
+  14   1          unsigned char str[4];
+  15   1          
+  16   1          str[0] = (bcd >> 4) + '0';
+  17   1          str[1] = (bcd&0x0F) + '0';
+  18   1          str[2] = '\0';
+  19   1          LcdShowStr(x, y, str);
+  20   1      }
+  21          
+  22          void RefreshTimeShow()
+  23          {
+  24   1        LcdShowStr(3, 0, "20");
+  25   1        ShowBcdByte(5,  0, bufTime.year);
+  26   1        LcdShowChar(7, 0, '-');
+  27   1        ShowBcdByte(8,  0, bufTime.mon);
+  28   1        LcdShowChar(10, 0, '-');
+  29   1        ShowBcdByte(11, 0, bufTime.day);
+  30   1        ShowBcdByte(4,  1, bufTime.hour);
+  31   1        LcdShowChar(6, 1, ':');
+  32   1        ShowBcdByte(7,  1, bufTime.min);
+  33   1        LcdShowChar(9, 1, ':');
+  34   1        ShowBcdByte(10, 1, bufTime.sec);
+  35   1      }
+  36          
+  37          void RefreshSetShow()
+  38          {
+  39   1          switch (setIndex)
+  40   1          {
+  41   2              case 1:  LcdSetCursor(5,  0); break;
+  42   2              case 2:  LcdSetCursor(6,  0); break;
+  43   2              case 3:  LcdSetCursor(8,  0); break;
+  44   2              case 4:  LcdSetCursor(9,  0); break;
+  45   2              case 5:  LcdSetCursor(11, 0); break;
+  46   2              case 6:  LcdSetCursor(12, 0); break;
+  47   2              case 7:  LcdSetCursor(4,  1); break;
+  48   2              case 8:  LcdSetCursor(5,  1); break;
+  49   2              case 9:  LcdSetCursor(7,  1); break;
+  50   2              case 10: LcdSetCursor(8,  1); break;
+  51   2              case 11: LcdSetCursor(10, 1); break;
+  52   2              case 12: LcdSetCursor(11, 1); break;
+  53   2              default:  break;
+  54   2          }
+C51 COMPILER V9.60.0.0   TIME                                                              05/05/2022 14:22:23 PAGE 2   
+
+  55   1      }
+  56          
+  57          unsigned char IncBcdHigh(unsigned char bcd)
+  58          {
+  59   1          if ((bcd&0xF0) < 0x90)
+  60   1              bcd += 0x10;
+  61   1          else
+  62   1              bcd &= 0x0F;
+  63   1          
+  64   1          return bcd;
+  65   1      }
+  66          
+  67          unsigned char IncBcdLow(unsigned char bcd)
+  68          {
+  69   1          if ((bcd&0x0F) < 0x09)
+  70   1              bcd += 0x01;
+  71   1          else
+  72   1              bcd &= 0xF0;
+  73   1          
+  74   1          return bcd;
+  75   1      }
+  76          
+  77          unsigned char DecBcdHigh(unsigned char bcd)
+  78          {
+  79   1          if ((bcd&0xF0) > 0x00)
+  80   1              bcd -= 0x10;
+  81   1          else
+  82   1              bcd |= 0x90;
+  83   1          
+  84   1          return bcd;
+  85   1      }
+  86          
+  87          unsigned char DecBcdLow(unsigned char bcd)
+  88          {
+  89   1          if ((bcd&0x0F) > 0x00)
+  90   1              bcd -= 0x01;
+  91   1          else
+  92   1              bcd |= 0x09;
+  93   1          
+  94   1          return bcd;
+  95   1      }
+  96          
+  97          void IncSetTime()
+  98          {
+  99   1        switch (setIndex)
+ 100   1        {
+ 101   2          case 1:  bufTime.year = IncBcdHigh(bufTime.year); break;
+ 102   2          case 2:  bufTime.year = IncBcdLow(bufTime.year);  break;
+ 103   2          case 3:  bufTime.mon  = IncBcdHigh(bufTime.mon);  break;
+ 104   2          case 4:  bufTime.mon  = IncBcdLow(bufTime.mon);   break;
+ 105   2          case 5:  bufTime.day  = IncBcdHigh(bufTime.day);  break;
+ 106   2          case 6:  bufTime.day  = IncBcdLow(bufTime.day);   break;
+ 107   2          case 7:  bufTime.hour = IncBcdHigh(bufTime.hour); break;
+ 108   2          case 8:  bufTime.hour = IncBcdLow(bufTime.hour);  break;
+ 109   2          case 9:  bufTime.min  = IncBcdHigh(bufTime.min);  break;
+ 110   2          case 10: bufTime.min  = IncBcdLow(bufTime.min);   break;
+ 111   2          case 11: bufTime.sec  = IncBcdHigh(bufTime.sec);  break;
+ 112   2          case 12: bufTime.sec  = IncBcdLow(bufTime.sec);   break;
+ 113   2          default:  break;
+ 114   2        }
+ 115   1        RefreshTimeShow();
+ 116   1        RefreshSetShow();
+C51 COMPILER V9.60.0.0   TIME                                                              05/05/2022 14:22:23 PAGE 3   
+
+ 117   1      }
+ 118          
+ 119          void DecSetTime()
+ 120          {
+ 121   1        switch (setIndex)
+ 122   1        {
+ 123   2          case 1:  bufTime.year = DecBcdHigh(bufTime.year); break;
+ 124   2          case 2:  bufTime.year = DecBcdLow(bufTime.year);  break;
+ 125   2          case 3:  bufTime.mon  = DecBcdHigh(bufTime.mon);  break;
+ 126   2          case 4:  bufTime.mon  = DecBcdLow(bufTime.mon);   break;
+ 127   2          case 5:  bufTime.day  = DecBcdHigh(bufTime.day);  break;
+ 128   2          case 6:  bufTime.day  = DecBcdLow(bufTime.day);   break;
+ 129   2          case 7:  bufTime.hour = DecBcdHigh(bufTime.hour); break;
+ 130   2          case 8:  bufTime.hour = DecBcdLow(bufTime.hour);  break;
+ 131   2          case 9:  bufTime.min  = DecBcdHigh(bufTime.min);  break;
+ 132   2          case 10: bufTime.min  = DecBcdLow(bufTime.min);   break;
+ 133   2          case 11: bufTime.sec  = DecBcdHigh(bufTime.sec);  break;
+ 134   2          case 12: bufTime.sec  = DecBcdLow(bufTime.sec);   break;
+ 135   2          default:  break;
+ 136   2        }
+ 137   1        RefreshTimeShow();
+ 138   1        RefreshSetShow();
+ 139   1      }
+ 140          
+ 141          void RightShiftTimeSet()
+ 142          {
+ 143   1        if (setIndex != 0)
+ 144   1        {
+ 145   2          if(setIndex < 12)
+ 146   2              setIndex++;
+ 147   2          else
+ 148   2              setIndex = 1;
+ 149   2          RefreshSetShow();
+ 150   2        }
+ 151   1      }
+ 152          
+ 153          void LeftShiftTimeSet()
+ 154          {
+ 155   1        if(setIndex != 0)
+ 156   1        { 
+ 157   2          if(setIndex > 1)
+ 158   2             setIndex--;
+ 159   2          else
+ 160   2             setIndex = 12;
+ 161   2             RefreshSetShow();
+ 162   2        }
+ 163   1      }
+ 164          
+ 165          void EnterTimeSet()
+ 166          {
+ 167   1        setIndex = 2;       
+ 168   1        LeftShiftTimeSet(); 
+ 169   1        LcdOpenCursor();   
+ 170   1      }
+ 171          
+ 172          void ExitTimeSet(bit save)
+ 173          {
+ 174   1        setIndex = 0;    
+ 175   1        if(save)     
+ 176   1        {
+ 177   2          SetRealTime(&bufTime);
+ 178   2        }
+C51 COMPILER V9.60.0.0   TIME                                                              05/05/2022 14:22:23 PAGE 4   
+
+ 179   1        LcdCloseCursor(); 
+ 180   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    731    ----
+   CONSTANT SIZE    =      3    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =     10       4
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
